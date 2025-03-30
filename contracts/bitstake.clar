@@ -242,14 +242,14 @@
             { token-id: token-id }
             (merge token { 
                 is-staked: true,
-                stake-timestamp: block-height
+                stake-timestamp: stacks-block-height
             })
         )
         (map-set staking-rewards
             { token-id: token-id }
             {
                 accumulated-yield: u0,
-                last-claim: block-height
+                last-claim: stacks-block-height
             }
         )
         (var-set total-staked (+ (var-get total-staked) u1))
@@ -303,7 +303,7 @@
         (
             (token (unwrap! (get-token-info token-id) err-invalid-token))
             (rewards (unwrap! (get-staking-rewards token-id) err-not-staked))
-            (blocks-staked (- block-height (get stake-timestamp token)))
+            (blocks-staked (- stacks-block-height (get stake-timestamp token)))
             (yield-per-block (/ (var-get yield-rate) u52560)) ;; Approximate blocks per year
             (new-rewards (* blocks-staked yield-per-block))
         )
@@ -324,7 +324,7 @@
             { token-id: token-id }
             {
                 accumulated-yield: u0,
-                last-claim: block-height
+                last-claim: stacks-block-height
             }
         )
         
