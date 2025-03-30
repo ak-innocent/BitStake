@@ -72,3 +72,38 @@
     { token-id: uint, owner: principal }
     { shares: uint }
 )
+
+(define-map staking-rewards
+    { token-id: uint }
+    { 
+        accumulated-yield: uint,
+        last-claim: uint
+    }
+)
+
+;; Private Functions for Input Validation
+(define-private (validate-uri (uri (string-ascii 256)))
+    (let
+        (
+            (uri-len (len uri))
+        )
+        (and
+            (> uri-len u0)
+            (<= uri-len u256)
+        )
+    )
+)
+
+(define-private (validate-recipient (recipient principal))
+    (not (is-eq recipient (as-contract tx-sender)))
+)
+
+(define-private (safe-add (a uint) (b uint))
+    (let
+        (
+            (sum (+ a b))
+        )
+        (asserts! (>= sum a) err-overflow)
+        (ok sum)
+    )
+)
