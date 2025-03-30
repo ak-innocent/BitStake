@@ -228,3 +228,55 @@
         (ok true)
     )
 )
+
+;; Staking Functions
+(define-public (stake-nft (token-id uint))
+    (let
+        (
+            (token (unwrap! (get-token-info token-id) err-invalid-token))
+        )
+        (asserts! (is-eq tx-sender (get owner token)) err-not-token-owner)
+        (asserts! (not (get is-staked token)) err-already-staked)
+        
+        (map-set tokens
+            { token-id: token-id }
+            (merge token { 
+                is-staked: true,
+                stake-timestamp: block-height
+            })
+        )
+        (map-set staking-rewards
+            { token-id: token-id }
+            {
+                accumulated-yield: u0,
+                last-claim: block-height
+            }
+        )
+        (var-set total-staked (+ (var-get total-staked) u1))
+        (ok true)
+    )
+)
+
+(define-public (unstake-nft (token-id uint))
+    (let
+        (
+            (token (unwrap! (get-token-info token-id) err-invalid-token))
+            (rewards (unwrap! (get-staking-rewards token-id) err-not-staked))
+        )
+        (asserts! (is-eq tx-sender (get owner token)) err-not-token-owner)
+        (asserts! (get is-staked token) err-not-staked)
+        
+        ;; Calculate and distribute final rewards
+        (try! (claim-staking-rewards token-id))
+        
+        (map-set tokens
+            { token-id: token-id }
+            (merge token { 
+                is-staked: false,
+                stake-timestamp: u0
+            })
+        )
+        (var-set total-staked (- (var-get total-staked) u1))
+        (ok true)
+    )
+)
